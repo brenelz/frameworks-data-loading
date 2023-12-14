@@ -1,19 +1,37 @@
-import { Title } from "@solidjs/meta";
-import Counter from "~/components/Counter";
+import { action, cache, createAsync, useSubmission } from "@solidjs/router";
+
+let nums = [1, 2, 3];
+
+const getNums = cache(async () => {
+  "use server";
+  return nums;
+}, 'getNums');
+
+const addNum = action(async () => {
+  "use server";
+  await new Promise(r => setTimeout(r, 2000));
+
+  nums.push(4);
+
+  return 'success';
+}, 'addNum');
 
 export default function Home() {
+  const nums = createAsync(getNums);
+  const addNumAction = useSubmission(addNum);
+
   return (
     <main>
-      <Title>Hello World</Title>
-      <h1>Hello world!</h1>
-      <Counter />
       <p>
-        Visit{" "}
-        <a href="https://start.solidjs.com" target="_blank">
-          start.solidjs.com
-        </a>{" "}
-        to learn how to build SolidStart apps.
+        {nums()}
       </p>
+      <form action={addNum} method='post'>
+        <button type="submit">Add Num</button>
+      </form>
+      <pre>
+        {addNumAction.pending ? 'pending' : 'not pending'}
+        {addNumAction.result}
+      </pre>
     </main>
   );
 }

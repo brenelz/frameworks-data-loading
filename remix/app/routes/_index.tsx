@@ -1,41 +1,50 @@
-import type { MetaFunction } from "@remix-run/node";
+import { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { Form, useActionData, useFetcher, useLoaderData, useNavigation } from "@remix-run/react";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
+let nums = [1, 2, 3];
+
+const getNums = async () => {
+  return nums;
 };
 
-export default function Index() {
+const addNum = async () => {
+  await new Promise(r => setTimeout(r, 2000));
+
+  nums.push(4);
+
+  return 'success';
+};
+
+
+export const loader = async () => {
+  return {
+    nums: await getNums()
+  }
+}
+
+export const action = async () => {
+  return {
+    message: await addNum()
+  }
+}
+
+export default function Home() {
+  const loaderData = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
+    <main>
+      <p>
+        {loaderData.nums}
+      </p>
+      <Form method='post'>
+        <button type="submit">Add Num</button>
+      </Form>
+      <pre>
+        {navigation.state}<br />
+        {actionData?.message}
+      </pre>
+    </main>
   );
 }
